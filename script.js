@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
 async function fetchEtat() {
   if (FI) return;
   try {
-    let res = await fetch('/api/server/songo');
+    let res = await fetch('/api/songo');
     let data = await res.json();
     if (data) syncJeu(data);
   } catch (e) { console.error("Erreur Ajax", e); }
@@ -27,7 +27,7 @@ async function fetchEtat() {
 
 async function pushEtat(nouvelEtat) {
   try {
-    await fetch('/api/server/songo/jouer', {
+    await fetch('/api/songo/jouer', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(nouvelEtat)
@@ -39,7 +39,7 @@ async function seConnecter(role) {
   MON_PSEUDO = document.getElementById("pseudo").value.trim() || ("Joueur " + role);
   MON_ROLE = role;
   try {
-    let res = await fetch('/api/server/songo/connexion', {
+    let res = await fetch('/api/songo/connexion', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pseudo: MON_PSEUDO, role: MON_ROLE })
@@ -57,7 +57,7 @@ async function seConnecter(role) {
 
 async function quitterPartie() {
   clearInterval(ROULAGE);
-  await fetch('/api/server/songo/reset', { method: 'POST' });
+  await fetch('/api/songo/reset', { method: 'POST' });
   document.getElementById("jeu").style.display = "none";
   document.getElementById("accueil").style.display = "flex";
 }
