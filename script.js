@@ -14,10 +14,12 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btn-quitter").onclick = quitterPartie;
 });
 
+// --- LES FONCTIONS AJAX CORRIGÉES POUR VERCEL ---
+
 async function fetchEtat() {
   if (FI) return;
   try {
-    let res = await fetch('/api/songo');
+    let res = await fetch('/api/server/songo');
     let data = await res.json();
     if (data) syncJeu(data);
   } catch (e) { console.error("Erreur Ajax", e); }
@@ -25,7 +27,7 @@ async function fetchEtat() {
 
 async function pushEtat(nouvelEtat) {
   try {
-    await fetch('/api/songo/jouer', {
+    await fetch('/api/server/songo/jouer', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(nouvelEtat)
@@ -33,26 +35,11 @@ async function pushEtat(nouvelEtat) {
   } catch (e) { console.error("Erreur Ajax", e); }
 }
 
-function syncJeu(data) {
-  B = data.B; SC = data.SC; J = data.J; FI = data.FI;
-  document.getElementById("lsud").textContent = data.pseudoSud ? data.pseudoSud + " (SUD)" : "En attente...";
-  document.getElementById("lnord").textContent = data.pseudoNord ? data.pseudoNord + " (NORD)" : "En attente...";
-  document.getElementById("inf-j").textContent = `${J === "SUD" ? data.pseudoSud : (data.pseudoNord || "NORD")} (${J})`;
-  
-  if (!data.pseudoSud || !data.pseudoNord) {
-    setMsg("⏳ En attente de l'autre joueur...");
-  } else {
-    setMsg(J === MON_ROLE ? "🟢 À vous de jouer !" : "🚨 L'adversaire réfléchit...");
-  }
-  draw(); majSC();
-  if (FI) { clearInterval(ROULAGE); setMsg("🏆 Partie Terminée !"); }
-}
-
 async function seConnecter(role) {
   MON_PSEUDO = document.getElementById("pseudo").value.trim() || ("Joueur " + role);
   MON_ROLE = role;
   try {
-    let res = await fetch('/api/songo/connexion', {
+    let res = await fetch('/api/server/songo/connexion', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pseudo: MON_PSEUDO, role: MON_ROLE })
@@ -70,9 +57,26 @@ async function seConnecter(role) {
 
 async function quitterPartie() {
   clearInterval(ROULAGE);
-  await fetch('/api/songo/reset', { method: 'POST' });
+  await fetch('/api/server/songo/reset', { method: 'POST' });
   document.getElementById("jeu").style.display = "none";
   document.getElementById("accueil").style.display = "flex";
+}
+
+// --- LOGIQUE MULTIJOUEUR ET RENDU DU PLATEAU ---
+
+function syncJeu(data) {
+  B = data.B; SC = data.SC; J = data.J; FI = data.FI;
+  document.getElementById("lsud").textContent = data.pseudoSud ? data.pseudoSud + " (SUD)" : "En attente...";
+  document.getElementById("lnord").textContent = data.pseudoNord ? data.pseudoNord + " (NORD)" : "En attente...";
+  document.getElementById("inf-j").textContent = `${J === "SUD" ? data.pseudoSud : (data.pseudoNord || "NORD")} (${J})`;
+  
+  if (!data.pseudoSud || !data.pseudoNord) {
+    setMsg("⏳ En attente de l'autre joueur...");
+  } else {
+    setMsg(J === MON_ROLE ? "🟢 À vous de jouer !" : "🚨 L'adversaire réfléchit...");
+  }
+  draw(); majSC();
+  if (FI) { clearInterval(ROULAGE); setMsg("🏆 Partie Terminée !"); }
 }
 
 function jouer(idx){
@@ -138,4 +142,3 @@ function mk(idx, jouable, label){
 }
 
 const majSC = () => { document.getElementById("vsud").textContent = SC.sud; document.getElementById("vnord").textContent = SC.nord; };
-const setMsg = t => document.getElementById("msg").textContent = t;
