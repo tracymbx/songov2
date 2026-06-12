@@ -5,7 +5,8 @@ const app = express();
 // Utilise le port fourni par l'hébergeur en ligne, ou 3000 en local
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
+// Remplace app.use(express.static(path.join(__dirname, 'public'))); par :
+app.use(express.static(__dirname));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Stockage de la partie en mémoire sur le serveur
