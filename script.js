@@ -7,24 +7,45 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function creerPartie() {
-    const pseudo = document.getElementById("pseudo").value || "Joueur";
+    
+    const pseudo = document.getElementById("pseudo").value || "Joueur Sud";
+    
     const idAuto = "SONGO-" + Date.now().toString().slice(-5);
     
     try {
-        const res = await fetch('/api/songo/creer', {
+        
+        const res = await fetch('/api/songo/connexion', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ idPartie: idAuto, pseudo: pseudo })
+            body: JSON.stringify({ 
+                idPartie: idAuto, 
+                pseudo: pseudo, 
+                role: "SUD" 
+            })
         });
-        if (res.ok) {
+        
+        const data = await res.json();
+
+        if (data.success) {
+            
             idPartie = idAuto;
             role = "SUD";
+            monTour = true; // Le créateur commence au Songo
+
             document.getElementById("accueil").style.display = "none";
-            document.getElementById("jeu").style.display = "block";
-            document.getElementById("inf-id").textContent = "ID: " + idPartie;
+            document.getElementById("jeu").style.display = "flex"; // Ton CSS utilise flex pour #jeu
+            
+            document.getElementById("inf-id").innerHTML = `<strong>${idPartie}</strong>`;
+            document.getElementById("msg").textContent = "Partie créée. En attente du Joueur Nord (Adversaire)...";
+
             genererGrille();
+            intervalleSynchronisation = setInterval(recupererEtatDuServeur, 2000);
+        } else {
+            alert("Erreur lors de la création : " + data.message);
         }
-    } catch (e) { alert("Erreur de connexion"); }
+    } catch (e) { 
+        alert("Erreur de connexion avec le serveur Vercel"); 
+    }
 }
 
 function genererGrille() {
