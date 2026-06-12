@@ -1,71 +1,46 @@
-let idPartie = "";
-let role = "";
-
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("btn-creer").addEventListener("click", creerPartie);
     document.getElementById("btn-rejoindre").addEventListener("click", rejoindrePartie);
 });
 
 async function creerPartie() {
-    
-    const pseudo = document.getElementById("pseudo").value || "Joueur Sud";
-    
+    const pseudo = document.getElementById("pseudo").value || "Joueur";
     const idAuto = "SONGO-" + Date.now().toString().slice(-5);
     
     try {
-        
-        const res = await fetch('/api/songo/connexion', {
+        const res = await fetch('/api/songo/creer', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                idPartie: idAuto, 
-                pseudo: pseudo, 
-                role: "SUD" 
-            })
+            body: JSON.stringify({ idPartie: idAuto, pseudo: pseudo })
         });
         
-        const data = await res.json();
-
-        if (data.success) {
-            
-            idPartie = idAuto;
-            role = "SUD";
-            monTour = true; // Le créateur commence au Songo
-
+        if (res.ok) {
             document.getElementById("accueil").style.display = "none";
-            document.getElementById("jeu").style.display = "flex"; // Ton CSS utilise flex pour #jeu
-            
-            document.getElementById("inf-id").innerHTML = `<strong>${idPartie}</strong>`;
-            document.getElementById("msg").textContent = "Partie créée. En attente du Joueur Nord (Adversaire)...";
-
+            document.getElementById("jeu").style.display = "block";
+            document.getElementById("inf-id").textContent = "ID Partie: " + idAuto;
             genererGrille();
-            intervalleSynchronisation = setInterval(recupererEtatDuServeur, 2000);
-        } else {
-            alert("Erreur lors de la création : " + data.message);
         }
-    } catch (e) { 
-        alert("Erreur de connexion avec le serveur Vercel"); 
-    }
+    } catch (e) { alert("Erreur serveur"); }
 }
 
 function genererGrille() {
     const grille = document.getElementById("grille");
     grille.innerHTML = "";
+    // Création des 14 cases du plateau
     for (let i = 0; i < 14; i++) {
-        const caseDiv = document.createElement("div");
-        caseDiv.className = "case";
-        caseDiv.id = "case-" + i;
-        caseDiv.textContent = "5"; // Bille initiale
-        grille.appendChild(caseDiv);
+        const c = document.createElement("div");
+        c.className = "case";
+        c.textContent = "5"; // Distribution initiale
+        grille.appendChild(c);
     }
 }
 
 async function rejoindrePartie() {
-    const idInput = document.getElementById("partie-id").value;
-    if(!idInput) return alert("Entrez un ID");
-    idPartie = idInput;
-    role = "NORD";
+    const id = document.getElementById("partie-id").value;
+    if (!id) return alert("Entrez un ID valide");
+    
     document.getElementById("accueil").style.display = "none";
     document.getElementById("jeu").style.display = "block";
+    document.getElementById("inf-id").textContent = "ID Partie: " + id;
     genererGrille();
 }

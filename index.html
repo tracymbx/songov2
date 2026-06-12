@@ -2,23 +2,25 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Songo En Ligne</title>
+    <title>Songo V2 - Version Stable</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
     <div id="accueil">
         <h1>Songo en Ligne</h1>
         <input type="text" id="pseudo" placeholder="Ton pseudo">
-        <button id="btn-creer" class="btn-start">🆕 Créer une nouvelle partie</button>
-        <input type="text" id="partie-id" placeholder="ID à rejoindre">
-        <button id="btn-rejoindre">Rejoindre</button>
+        <button id="btn-creer">Créer une nouvelle partie</button>
+        <hr>
+        <input type="text" id="partie-id" placeholder="ID de la partie à rejoindre">
+        <button id="btn-rejoindre">Rejoindre la partie</button>
     </div>
 
     <div id="jeu" style="display:none;">
-        <h2 id="inf-id">ID: -</h2>
-        <div id="grille">
-            </div>
+        <h2 id="inf-id">ID: En attente...</h2>
+        <div id="grille"></div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
