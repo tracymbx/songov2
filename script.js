@@ -3,55 +3,129 @@
 // ==========================================
 let idPartie = "";
 let role = ""; // "SUD" ou "NORD"
-let NJ = { sud: "Joueur SUD", nord: "En attente..." };
+let monPseudo = "";
 let etatJeu = {
-  B: Array(14).fill(5), // 14 cases avec 5 billes initiales
+  B: Array(14).fill(5), // 14 cases contenant 5 billes au départ
   scores: { sud: 0, nord: 0 },
   tour: "SUD",
   joueurs: { sud: "En attente...", nord: "En attente..." }
 };
 
-// Sens trigonométrique traditionnel : 
-// SUD (bas) progresse de gauche à droite (indices 7 à 13)
-// NORD (haut) progresse de droite à gauche (indices 6 à 0)
+// Sens trigonométrique traditionnel :
+// SUD (bas) progresse de gauche à droite (cases 7 à 13)
+// NORD (haut) progresse de droite à gauche (cases 6 à 0)
 const ROUTE = [7, 8, 9, 10, 11, 12, 13, 6, 5, 4, 3, 2, 1, 0];
 
 const suiv = p => ROUTE[(ROUTE.indexOf(p) + 1) % 14];
 const prec = p => ROUTE[(ROUTE.indexOf(p) - 1 + 14) % 14];
 
 // ==========================================
-// 2. INITIALISATION AU CHARGEMENT
+// 2. ATTACHE DES ÉVÉNEMENTS AU CHARGEMENT
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
-  // Liaison du bouton "Rejoindre" si l'ID est configuré dans le HTML
-  const btnRejoindre = document.getElementById("btn-rejoindre");
-  if (btnRejoindre) btnRejoindre.onclick = rejoindrePartie;
-
-  // Générer immédiatement les conteneurs de la table de jeu en arrière-plan
-  genererPlateauHTML();
+  // Liaison avec les ID réels de ton fichier HTML
+  document.getElementById("btn-creer").onclick = creerPartie;
+  document.getElementById("btn-rejoindre").onclick = rejoindrePartie;
+  document.getElementById("btn-quitter").onclick = () => location.reload();
 });
 
-function genererPlateauHTML() {
-  const grille = document.getElementById("grille-songo");
-  if (!grille) return;
-  grille.innerHTML = ""; 
+// ==========================================
+// 3. LOGIQUE DE SESSIONS (MUTLIJOUEUR)
+// ==========================================
+async function creerPartie() {
+  const pseudoInput = document.getElementById("pseudo").value.trim();
+  monPseudo = pseudoInput || "Joueur SUD";
+  role = "SUD";
 
-  // Ligne du NORD (Indices 0 à 6)
-  const rangeeNord = document.createElement("div");
-  rangeeNord.className = "rangee nord";
+  // Auto-incrémentation automatique de l'ID basée sur l'heure
+  const idAuto = "SONGO-" + Date.now().toString().slice(-5);
+
+  try {
+    let res = await fetch('/api/songo/creer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idPartie: idAuto, pseudo: monPseudo })
+    });
+    
+    if (res.ok) {
+      let data = await res.json();
+      idPartie = data.idPartie;
+      
+      // On bascule l'affichage et on génère immédiatement la table
+      afficherEcranJeu();
+      // On lance la boucle de synchronisation toutes les secondes
+      setInterval(fetchEtat, 1000); 
+    } else {
+      document.getElementById("msg-accueil").textContent = "Erreur lors de la création de la partie.";
+    }
+  } catch (err) {
+    document.getElementById("msg-accueil").textContent = "Le serveur Node.js ne répond pas.";
+  }
+}
+
+async function rejoindrePartie() {
+  const pseudoInput = document.getElementById("pseudo").value.trim();
+  const idInput = document.getElementById("partie-id").value.trim();
+  
+  if (!idInput) {
+    alert("Veuillez coller l'ID de la partie à rejoindre.");
+    return;
+  }
+
+  monPseudo = pseudoInput || "Joueur NORD";
+  role = "NORD";
+  idPartie = idInput.toUpperCase();
+
+  try {
+    let res = await fetch('/api/songo/rejoindre', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idPartie: idPartie, pseudo: monPseudo })
+    });
+
+    if (res.ok) {
+      afficherEcranJeu();
+      setInterval(fetchEtat, 1000);
+    } else {
+      document.getElementById("msg-accueil").textContent = "Impossible de rejoindre. Vérifiez l'ID.";
+    }
+  } catch (err) {
+    document.getElementById("msg-accueil").textContent = "Erreur de connexion au serveur.";
+  }
+}
+
+// ==========================================
+// 4. CONSTRUCTION ET DESSIN DU PLATEAU HTML
+// ==========================================
+function afficherEcranJeu() {
+  document.getElementById("accueil").style.display = "none";
+  document.getElementById("jeu").style.display = "block";
+  
+  document.getElementById("inf-id").textContent = idPartie;
+  document.getElementById("inf-role").textContent = role;
+
+  // On injecte les cases dans les zones de ton HTML (rn pour Nord, rs pour Sud)
+  genererCasesPlateau();
+  redessinerPlateau();
+}
+
+function genererCasesPlateau() {
+  const zoneNord = document.getElementById("rn");
+  const zoneSud = document.getElementById("rs");
+  
+  if (!zoneNord || !zoneSud) return;
+  zoneNord.innerHTML = "";
+  zoneSud.innerHTML = "";
+
+  // Génération de la rangée NORD (cases 0 à 6)
   for (let i = 0; i <= 6; i++) {
-    rangeeNord.appendChild(creerCaseHTML(i));
+    zoneNord.appendChild(creerCaseHTML(i));
   }
 
-  // Ligne du SUD (Indices 7 à 13)
-  const rangeeSud = document.createElement("div");
-  rangeeSud.className = "rangee sud";
+  // Génération de la rangée SUD (cases 7 à 13)
   for (let i = 7; i <= 13; i++) {
-    rangeeSud.appendChild(creerCaseHTML(i));
+    zoneSud.appendChild(creerCaseHTML(i));
   }
-
-  grille.appendChild(rangeeNord);
-  grille.appendChild(rangeeSud);
 }
 
 function creerCaseHTML(index) {
@@ -60,106 +134,54 @@ function creerCaseHTML(index) {
   c.id = "case-" + index;
   c.onclick = () => jouerCoup(index);
 
-  const label = document.createElement("span");
-  label.className = "label-case";
-  label.textContent = (index < 7 ? "N" : "S") + (index < 7 ? index + 1 : index - 6);
-  
+  // Un petit indicateur de texte pour déboguer le numéro de case si besoin
+  c.setAttribute("data-index", index);
+
+  // Conteneur interne où vont apparaître les billes
   const conteneurBilles = document.createElement("div");
   conteneurBilles.className = "billes-container";
   conteneurBilles.id = "billes-" + index;
 
-  c.appendChild(label);
   c.appendChild(conteneurBilles);
   return c;
 }
 
-// ==========================================
-// 3. FONCTIONS DE SESSIONS (CREER / REJOINDRE)
-// ==========================================
-
-// Cette fonction est directement appelée par le bouton "Créer une nouvelle partie" (onclick="dem()")
-async function dem() {
-  // Récupération via l'ID exact "ns" présent sur ton écran
-  const pseudoInput = document.getElementById("ns") ? document.getElementById("ns").value.trim() : "";
-  NJ.sud = pseudoInput || "Joueur SUD";
-  role = "SUD";
-
-  // Auto-incrémentation automatique de l'ID via un identifiant temporel court
-  const idAuto = "SONGO-" + Date.now().toString().slice(-5);
-
-  try {
-    let res = await fetch('/api/songo/creer', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idPartie: idAuto, pseudo: NJ.sud })
-    });
+function redessinerPlateau() {
+  // Dessin ou rafraîchissement des ronds de billes
+  for (let i = 0; i < 14; i++) {
+    const conteneur = document.getElementById("billes-" + i);
+    if (!conteneur) continue;
     
-    if (res.ok) {
-      let data = await res.json();
-      idPartie = data.idPartie;
-      
-      // Permuter les écrans d'affichage
-      afficherEcranJeu();
-      
-      // Lancer la synchronisation temps réel
-      setInterval(fetchEtat, 1000); 
-    } else {
-      alert("Erreur retournée par le serveur.");
+    const totalBilles = etatJeu.B[i];
+    conteneur.innerHTML = ""; // Nettoyage de l'ancien rendu
+    
+    for (let b = 0; b < totalBilles; b++) {
+      const bille = document.createElement("div");
+      bille.className = "bille";
+      conteneur.appendChild(bille);
     }
-  } catch (err) {
-    console.error("Erreur de communication avec l'API:", err);
-    alert("Le serveur Node.js ne répond pas.");
-  }
-}
-
-async function rejoindrePartie() {
-  const pseudoInput = document.getElementById("ns") ? document.getElementById("ns").value.trim() : "";
-  const idInput = document.getElementById("id-partie-input") ? document.getElementById("id-partie-input").value.trim() : "";
-  
-  if (!idInput) {
-    alert("Veuillez entrer un ID de partie valide");
-    return;
   }
 
-  NJ.nord = pseudoInput || "Joueur NORD";
-  role = "NORD";
-  idPartie = idInput.toUpperCase();
+  // Mise à jour des en-têtes et des scores réels
+  document.getElementById("vsud").textContent = etatJeu.scores.sud;
+  document.getElementById("vnord").textContent = etatJeu.scores.nord;
+  document.getElementById("inf-j").textContent = etatJeu.tour;
 
-  try {
-    let res = await fetch('/api/songo/rejoindre', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idPartie: idPartie, pseudo: NJ.nord })
-    });
+  // Mise à jour des noms des joueurs
+  document.getElementById("lsud").textContent = etatJeu.joueurs.sud + " (SUD)";
+  document.getElementById("lnord").textContent = etatJeu.joueurs.nord + " (NORD)";
 
-    if (res.ok) {
-      afficherEcranJeu();
-      setInterval(fetchEtat, 1000);
-    } else {
-      alert("Impossible de rejoindre. Vérifiez l'ID de la partie.");
-    }
-  } catch (err) {
-    console.error("Erreur de connexion:", err);
+  // Message de statut
+  const msgZone = document.getElementById("msg");
+  if (etatJeu.joueurs.nord === "En attente...") {
+    msgZone.textContent = "En attente du deuxième joueur... Partagez l'ID : " + idPartie;
+  } else {
+    msgZone.textContent = `Match lancé ! Tour de : ${etatJeu.tour}`;
   }
-}
-
-function afficherEcranJeu() {
-  // Masquer l'accueil, afficher la table complète de Songo
-  if (document.getElementById("accueil")) document.getElementById("accueil").style.display = "none";
-  if (document.getElementById("jeu")) document.getElementById("jeu").style.display = "block";
-  
-  // Remplissage des blocs d'information de l'entête
-  const infoPartie = document.getElementById("info-partie");
-  if (infoPartie) infoPartie.textContent = idPartie;
-  
-  const monRole = document.getElementById("mon-role");
-  if (monRole) monRole.textContent = role;
-
-  redessinerPlateau();
 }
 
 // ==========================================
-// 4. SYNCHRONISATION & LOGIQUE DE JEU
+// 5. SYNCHRONISATION DES COUPS
 // ==========================================
 async function fetchEtat() {
   if (!idPartie) return;
@@ -170,38 +192,7 @@ async function fetchEtat() {
       redessinerPlateau();
     }
   } catch (err) {
-    console.warn("Actualisation de l'état en attente...");
-  }
-}
-
-function redessinerPlateau() {
-  // Dessiner dynamiquement les billes dans chaque trou de la table
-  for (let i = 0; i < 14; i++) {
-    const conteneur = document.getElementById("billes-" + i);
-    if (!conteneur) continue;
-    
-    const nbrBillesActuel = etatJeu.B[i];
-    conteneur.innerHTML = "";
-    
-    for (let b = 0; b < nbrBillesActuel; b++) {
-      const billeHTML = document.createElement("div");
-      billeHTML.className = "bille";
-      conteneur.appendChild(billeHTML);
-    }
-  }
-
-  // Mise à jour des scores et des textes de suivi du tour
-  if (document.getElementById("score-sud")) document.getElementById("score-sud").textContent = etatJeu.scores.sud;
-  if (document.getElementById("score-nord")) document.getElementById("score-nord").textContent = etatJeu.scores.nord;
-  if (document.getElementById("statut-tour")) document.getElementById("statut-tour").textContent = etatJeu.tour;
-
-  const msgZone = document.getElementById("message-statut");
-  if (msgZone) {
-    if (etatJeu.joueurs.nord === "En attente...") {
-      msgZone.textContent = "En attente du deuxième joueur... ID à partager : " + idPartie;
-    } else {
-      msgZone.textContent = `Match : ${etatJeu.joueurs.sud} (SUD) VS ${etatJeu.joueurs.nord} (NORD) | Tour : ${etatJeu.tour}`;
-    }
+    console.log("Synchro en attente...");
   }
 }
 
@@ -222,6 +213,6 @@ async function jouerCoup(indexCase) {
       redessinerPlateau();
     }
   } catch (err) {
-    console.error("Erreur lors de l'exécution du coup:", err);
+    console.error("Erreur d'envoi du coup:", err);
   }
 }
