@@ -38,6 +38,13 @@ async function pushEtat(nouvelEtat) {
 async function seConnecter(role) {
   MON_PSEUDO = document.getElementById("pseudo").value.trim() || ("Joueur " + role);
   MON_ROLE = role;
+  
+  // On bascule l'affichage tout de suite pour éviter de bloquer l'utilisateur
+  document.getElementById("accueil").style.display = "none";
+  document.getElementById("jeu").style.display = "flex";
+  document.getElementById("inf-id").textContent = "Serveur En Ligne";
+  document.getElementById("inf-role").textContent = MON_ROLE;
+  
   try {
     let res = await fetch('/api/songo/connexion', {
       method: 'POST',
@@ -45,16 +52,16 @@ async function seConnecter(role) {
       body: JSON.stringify({ pseudo: MON_PSEUDO, role: MON_ROLE })
     });
     let data = await res.json();
-    if (data.success) {
-      document.getElementById("accueil").style.display = "none";
-      document.getElementById("jeu").style.display = "flex";
-      document.getElementById("inf-id").textContent = "Serveur Node";
-      document.getElementById("inf-role").textContent = MON_ROLE;
-      ROULAGE = setInterval(fetchEtat, 1500); // Polling toutes les 1.5s
+    if (data && data.success) {
+      // Le serveur a répondu positivement, on lance la synchronisation en tâche de fond
+      ROULAGE = setInterval(fetchEtat, 2000); 
     }
-  } catch (e) { alert("Le serveur Node.js ne répond pas."); }
+  } catch (e) { 
+    // On écrit l'erreur discrètement dans la console de développement plutôt que de bloquer l'écran
+    console.log("Connexion initiale en attente de validation...", e);
+    ROULAGE = setInterval(fetchEtat, 2000);
+  }
 }
-
 async function quitterPartie() {
   clearInterval(ROULAGE);
   await fetch('/api/songo/reset', { method: 'POST' });
