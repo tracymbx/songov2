@@ -1,0 +1,43 @@
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+body { background: #e8dcc8; min-height: 100vh; }
+
+/* ACCUEIL & BOITES */
+#accueil { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+#accueil h1 { font-size: 40px; color: #3d1c02; margin-bottom: 20px; }
+.boite { background: #fffaf2; border-radius: 10px; padding: 18px 22px; width: 100%; max-width: 460px; margin-bottom: 16px; border: 1px solid #c9a87c; box-shadow: 0 3px 12px rgba(90,45,12,.12); }
+.boite h2 { color: #3d1c02; font-size: 17px; text-align: center; margin-bottom: 14px; }
+.bj { border: 1px solid #c9a87c; border-radius: 7px; padding: 10px 12px; margin-bottom: 10px; }
+.bj label { display: block; font-weight: bold; color: #3d1c02; margin-bottom: 5px; font-size: 13px; }
+.bj input { width: 100%; padding: 7px 9px; border: 1px solid #c9a87c; border-radius: 5px; font-size: 14px; }
+.btn-start { width: 100%; padding: 11px; font-size: 15px; background: linear-gradient(to bottom,#7a3a10,#4a1e07); color: #f5e6c8; border: none; border-radius: 7px; cursor: pointer; }
+.btn-start:hover { background: linear-gradient(to bottom,#8B4513,#5a2d0c); }
+
+/* STRUCTURE DU JEU */
+#jeu { display: none; flex-direction: column; align-items: center; padding: 14px; }
+#topbar, #msg, .sc { background: #fffaf2; border: 1px solid #c9a87c; border-radius: 9px; padding: 10px 18px; margin-bottom: 10px; }
+#topbar { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 800px; }
+#topbar h1 { font-size: 22px; color: #3d1c02; }
+.ibloc { text-align: center; }
+.ibloc .lbl { font-size: 10px; color: #999; text-transform: uppercase; }
+.ibloc .val { font-size: 15px; font-weight: bold; color: #3d1c02; }
+.btn-sm { padding: 7px 14px; font-size: 13px; background: #fffaf2; border: 1px solid #c9a87c; border-radius: 5px; cursor: pointer; color: #3d1c02; }
+.btn-sm.r { background: #c0392b; color: white; border-color: #c0392b; }
+#msg { border-left: 4px solid #c9a87c; font-size: 14px; color: #3d1c02; width: 100%; max-width: 800px; min-height: 40px; display: flex; align-items: center; }
+#scores { display: flex; gap: 12px; width: 100%; max-width: 800px; margin-bottom: 10px; }
+.sc { flex: 1; text-align: center; border-radius: 8px; }
+.sc .sn { font-size: 12px; color: #888; }
+.sc .sv { font-size: 28px; font-weight: bold; color: #3d1c02; }
+.sc .sl { font-size: 11px; color: #aaa; }
+
+/* LE PLATEAU DE JEU */
+#plateau { width: 100%; max-width: 800px; padding: 16px 14px 12px; border-radius: 16px; border: 5px solid #3d1c02; box-shadow: 0 8px 28px rgba(0,0,0,.5); background: linear-gradient(160deg,#c8874a 0%,#a0622a 30%,#7a4010 60%,#9a5828 80%,#c07838 100%); }
+.lr { color: #f5e0b0; font-size: 12px; text-align: center; margin: 4px 0; letter-spacing: 1px; font-weight: bold; }
+.rg { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin: 8px 0; }
+.case { width: 100%; aspect-ratio: 1/1; border-radius: 50%; border: 3px solid #2a0e00; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12%; cursor: not-allowed; overflow: hidden; position: relative; background: radial-gradient(ellipse at 45% 38%, #7a4a20 0%, #3d1800 55%, #1a0800 100%); box-shadow: inset 0 6px 18px rgba(0,0,0,.95), 0 2px 4px rgba(255,180,80,.1); }
+.billes { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 3px; width: 100%; }
+.bille { width: clamp(6px, 16%, 14px); height: clamp(6px, 16%, 14px); border-radius: 50%; background: radial-gradient(circle at 32% 28%, #f8f0d0, #d4aa65 50%, #8a6030); box-shadow: 0 1px 3px rgba(0,0,0,.7), inset 0 1px 2px rgba(255,255,220,.5); flex-shrink: 0; }
+.nb { font-size: clamp(12px,2vw,20px); font-weight: bold; color: #f5e8c0; text-shadow: 0 1px 4px rgba(0,0,0,.9); }
+.num { font-size: clamp(7px,.9vw,10px); color: #d0a060; line-height: 1; text-shadow: 0 1px 2px rgba(0,0,0,.8); margin-top: 3px; }
+.case.jouable { cursor: pointer; box-shadow: inset 0 6px 18px rgba(0,0,0,.7), 0 0 0 3px #f5c842, 0 0 20px 6px rgba(245,200,66,.5); }
+.case.jouable:hover { transform: scale(1.05); transition: transform .1s; }
+.case.vide { opacity: .38; }

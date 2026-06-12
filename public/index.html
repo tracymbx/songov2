@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Songo En Ligne (Version AJAX)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div id="accueil">
+    <h1>Songo en Ligne 🌐</h1>
+    
+    <div class="boite">
+      <h2>1. Votre Profil</h2>
+      <div class="bj">
+        <label for="pseudo">Votre Pseudo</label>
+        <input type="text" id="pseudo" placeholder="Ex: Anto" maxlength="15">
+      </div>
+    </div>
+
+    <div class="boite">
+      <h2>2. Rejoindre ou Créer</h2>
+      <button class="btn-start" id="btn-creer" style="margin-bottom: 12px;">🆕 Créer une nouvelle partie</button>
+      
+      <div style="text-align: center; margin-bottom: 12px; color: #7a3a10; font-weight: bold;">— OU —</div>
+      
+      <div class="bj">
+        <label for="partie-id">ID de la partie à rejoindre</label>
+        <input type="text" id="partie-id" placeholder="Coller l'ID reçu ici">
+      </div>
+      <button class="btn-start" id="btn-rejoindre" style="background: linear-gradient(to bottom,#2980b9,#2c3e50);">🔗 Rejoindre la partie</button>
+    </div>
+    
+    <div id="msg-accueil" style="color: #3d1c02; font-weight: bold; text-align: center;"></div>
+  </div>
+
+  <div id="jeu">
+    <div id="topbar">
+      <h1>Songo <span>(AJAX)</span></h1>
+      <div class="ibloc"><div class="lbl">ID Partie</div><div class="val" id="inf-id" style="font-size:11px; color:#2980b9;">—</div></div>
+      <div class="ibloc"><div class="lbl">Votre Rôle</div><div class="val" id="inf-role">—</div></div>
+      <div class="ibloc"><div class="lbl">Au tour de</div><div class="val" id="inf-j">—</div></div>
+      <button class="btn-sm r" id="btn-quitter">Quitter</button>
+    </div>
+    <div id="msg">En attente du deuxième joueur...</div>
+    <div id="scores">
+      <div class="sc"><div class="sn" id="lsud">SUD (Créateur)</div><div class="sv" id="vsud">0</div><div class="sl">billes</div></div>
+      <div class="sc"><div class="sn" id="lnord">NORD (Rejoignant)</div><div class="sv" id="vnord">0</div><div class="sl">billes</div></div>
+    </div>
+    <div id="plateau">
+      <div class="lr" id="lrn">NORD</div>
+      <div class="rg" id="rn"></div>
+      <div class="rg" id="rs"></div>
+      <div class="lr" id="lrs">SUD</div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
