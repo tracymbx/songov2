@@ -44,5 +44,5 @@ app.post('/api/songo/reset', (req, res) => {
   etatJeu = { B: Array(14).fill(4), SC: { sud: 0, nord: 0 }, J: "SUD", FI: false, pseudoSud: null, pseudoNord: null };
   res.json({ success: true });
 });
-// LIGNE CRUCIALE POUR VERCEL :
+
 module.exports = app;
